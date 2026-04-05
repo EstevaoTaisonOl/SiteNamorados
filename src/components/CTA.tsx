@@ -34,17 +34,36 @@ export default function CTA() {
             Não guarde seus afetos. Dê a eles o brilho e a trilha sonora que merecem.
           </p>
           
-          <Link 
-            href="/create"
-            className="inline-flex items-center gap-6 px-12 py-8 bg-charcoal text-cream group overflow-hidden transition-all duration-700 hover:scale-[1.05]"
-          >
-            <span className="text-xl font-medium tracking-wide">
-              Criar meu agora
-            </span>
-            <div className="w-12 h-12 flex items-center justify-center bg-cream/10 rounded-full group-hover:scale-125 transition-transform">
-              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </Link>
+          <div className="relative inline-flex flex-col items-center">
+            <Link 
+              href="/create"
+              className="inline-flex items-center gap-6 px-12 py-8 bg-charcoal text-cream group overflow-hidden transition-all duration-700 hover:scale-[1.05]"
+            >
+              <span className="text-xl font-medium tracking-wide">
+                Criar meu agora
+              </span>
+              <div className="w-12 h-12 flex items-center justify-center bg-cream/10 rounded-full group-hover:scale-125 transition-transform">
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Float Highlight Trigger */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              viewport={{ once: true }}
+              className="absolute -top-6 -right-12 bg-sunset text-cream text-[11px] uppercase tracking-[0.2em] font-bold px-4 py-2 rotate-6 shadow-2xl z-20 pointer-events-none"
+            >
+              pronto em menos de 5 min
+            </motion.div>
+          </div>
+
+          <div className="mt-12 flex flex-wrap justify-center gap-x-12 gap-y-4 opacity-40 uppercase text-[9px] tracking-[0.3em] font-bold text-charcoal">
+            <span className="flex items-center gap-2 italic">● 100% digital</span>
+            <span className="flex items-center gap-2 italic">● entrega instantânea</span>
+            <span className="flex items-center gap-2 italic">● crie pelo celular</span>
+          </div>
         </div>
 
         <div className="mt-32 pt-12 border-t-[0.5px] border-charcoal/10 flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] uppercase tracking-[0.2em] font-medium text-charcoal/40">

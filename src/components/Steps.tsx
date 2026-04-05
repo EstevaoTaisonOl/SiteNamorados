@@ -36,8 +36,18 @@ export default function Steps() {
         <span className="text-sm font-medium tracking-[0.2em] text-sunset uppercase mb-4 block">
           como funciona
         </span>
-        <h2 className="text-4xl md:text-5xl font-serif text-charcoal max-w-2xl leading-tight">
-          Crie em minutos. <br />
+        <h2 className="text-4xl md:text-5xl font-serif text-charcoal max-w-2xl leading-tight relative">
+          Crie em <span className="relative">minutos.
+            <motion.svg 
+              viewBox="0 0 100 10" 
+              className="absolute -bottom-1 left-0 w-full h-1 text-sunset/30"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              transition={{ duration: 1 }}
+            >
+              <motion.path d="M0 5 Q 50 2 100 5" fill="transparent" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+            </motion.svg>
+          </span> <br />
           Transforme para sempre.
         </h2>
       </motion.div>

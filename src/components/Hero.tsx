@@ -115,18 +115,33 @@ export default function Hero() {
         </motion.p>
 
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-6">
-          <Link 
-            href="/create"
-            className="group relative px-10 py-5 bg-charcoal text-cream overflow-hidden transition-all duration-500 hover:scale-[1.02]"
-          >
+          <div className="relative group">
+            <Link 
+              href="/create"
+              className="relative block px-10 py-5 bg-charcoal text-cream overflow-hidden transition-all duration-500 hover:scale-[1.02]"
+            >
+              <motion.div 
+                className="absolute inset-0 bg-sunset translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out -z-10"
+              />
+              <span className="flex items-center gap-3 text-lg font-medium">
+                Criar meu presente
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </Link>
+            
+            {/* Quick Trigger Badge - Independent of Clip */}
             <motion.div 
-              className="absolute inset-0 bg-sunset translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out -z-10"
-            />
-            <span className="flex items-center gap-3 text-lg font-medium">
-              Criar meu presente
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </Link>
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 1.5, duration: 0.8 }}
+              className="absolute -top-3 -right-3 bg-sunset text-cream text-[10px] uppercase tracking-widest font-bold px-3 py-1 rotate-12 shadow-lg z-20 pointer-events-none"
+            >
+              <div className="flex items-center gap-1">
+                <Sparkles className="w-2 h-2" />
+                <span className="whitespace-nowrap">em menos de 5 min</span>
+              </div>
+            </motion.div>
+          </div>
           
           <Link 
             href="#demo"
