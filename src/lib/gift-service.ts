@@ -30,7 +30,11 @@ export async function createGiftInSupabase(giftData: any) {
       music_name: giftData.musicName,
       stories: giftData.stories,
       journey: giftData.journey,
-      is_paid: false
+      is_paid: false,
+      event_date: giftData.eventDate,
+      location_name: giftData.locationName,
+      lat: giftData.lat,
+      lng: giftData.lng
     }])
     .select()
     .single();

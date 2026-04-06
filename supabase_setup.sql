@@ -17,11 +17,20 @@ CREATE TABLE IF NOT EXISTS gifts (
   paid_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   stories JSONB DEFAULT '[]',
-  journey JSONB DEFAULT '[]'
+  journey JSONB DEFAULT '[]',
+  
+  -- Star Map Data (Astro)
+  event_date TIMESTAMP WITH TIME ZONE,
+  location_name TEXT,
+  lat DOUBLE PRECISION,
+  lng DOUBLE PRECISION
 );
 
--- Se a tabela já existir, execute:
--- ALTER TABLE gifts ADD COLUMN IF NOT EXISTS sender_email TEXT;
+-- Se a tabela já existir, execute estas linhas no SQL Editor:
+-- ALTER TABLE gifts ADD COLUMN IF NOT EXISTS event_date TIMESTAMP WITH TIME ZONE;
+-- ALTER TABLE gifts ADD COLUMN IF NOT EXISTS location_name TEXT;
+-- ALTER TABLE gifts ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION;
+-- ALTER TABLE gifts ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION;
 
 -- 2. Políticas de Segurança (Row Level Security)
 -- Permitir leitura pública para que o presente possa ser visualizado por qualquer pessoa com o link

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGift } from "@/context/GiftContext";
-import { ArrowRight, Heart, Sparkles, Plus, Trash2, Camera, Map, CheckCircle2, Search, Play, Upload, CreditCard, Loader2 } from "lucide-react";
+import { ArrowRight, Heart, Sparkles, Plus, Trash2, Camera, Map, CheckCircle2, Search, Play, Upload, CreditCard, Loader2, Calendar } from "lucide-react";
+import StarMap from "@/components/StarMap";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
@@ -18,6 +19,9 @@ export default function CreateGift() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [payStatus, setPayStatus] = useState<"idle"|"paying"|"uploading"|"done">("idle");
+  const [citySearch, setCitySearch] = useState("");
+  const [cityResults, setCityResults] = useState<any[]>([]);
+  const [isSearchingCity, setIsSearchingCity] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -56,6 +60,35 @@ export default function CreateGift() {
     }
   };
 
+  const handleCitySearch = async (query: string) => {
+    if (query.length < 3) return;
+    setIsSearchingCity(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+      const data = await res.json();
+      setCityResults(data.map((item: any) => {
+        const parts = item.display_name.split(', ');
+        const simplified = parts.length > 1 ? `${parts[0]}, ${parts[parts.length - 1]}` : item.display_name;
+        return {
+          name: simplified,
+          lat: parseFloat(item.lat),
+          lng: parseFloat(item.lon)
+        }
+      }));
+    } catch (e) {
+      console.error("City search failed", e);
+    } finally {
+      setIsSearchingCity(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (citySearch.length >= 3) handleCitySearch(citySearch);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [citySearch]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -65,8 +98,8 @@ export default function CreateGift() {
   };
 
   const handleAddItem = () => {
-    if (input.photo && (currentStep === 2 || input.message)) {
-      if (currentStep === 2) {
+    if (input.photo && (currentStep === 3 || input.message)) {
+      if (currentStep === 3) {
         addStory({ imageUrl: input.photo, message: input.message }, input.file || undefined);
       } else {
         addJourneyItem({ imageUrl: input.photo, message: input.message }, input.file || undefined);
@@ -97,11 +130,11 @@ export default function CreateGift() {
         <Link href="/" className="font-serif text-xl tracking-tight">eternal memories</Link>
         <div className="flex items-center gap-6">
           <div className="hidden md:flex gap-1">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className={cn("w-8 h-[2px] transition-colors", i <= currentStep ? "bg-sunset" : "bg-charcoal/10")} />
             ))}
           </div>
-          <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">0{currentStep} / 04</span>
+          <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">0{currentStep} / 05</span>
         </div>
       </nav>
 
@@ -130,8 +163,79 @@ export default function CreateGift() {
               </StepContainer>
             )}
 
-
             {currentStep === 2 && (
+              <StepContainer key="step2" title="O Céu de Quando Começou" subtitle="selecione a data e o local de um momento especial para gerar o seu mapa estelar exclusivo.">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <label className="text-[10px] uppercase tracking-[0.2em] text-charcoal/60 ml-1 font-medium italic">Data Especial</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-sunset" />
+                      <input 
+                        type="date" 
+                        value={giftData.eventDate.split('T')[0]} 
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            // Preserve local day using noon (averts UTC offset day-shift)
+                            const dateObj = new Date(val + "T12:00:00");
+                            updateGiftData({ eventDate: dateObj.toISOString() });
+                          }
+                        }}
+                        className="w-full bg-white border-[1px] border-charcoal/20 focus:border-sunset outline-none p-6 pl-16 font-serif text-xl lowercase shadow-sm" 
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] uppercase tracking-[0.2em] text-charcoal/60 ml-1 font-medium italic">Cidade / Local</label>
+                    <div className="relative">
+                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-charcoal/20" />
+                      <input 
+                        type="text" 
+                        placeholder={giftData.locationName || "ex: São Paulo, Brasil"} 
+                        value={citySearch}
+                        onChange={(e) => setCitySearch(e.target.value)}
+                        className="w-full bg-white border-[1px] border-charcoal/20 focus:border-sunset outline-none p-6 pl-16 font-serif text-xl lowercase shadow-sm" 
+                      />
+                      {isSearchingCity && <div className="absolute right-4 top-1/2 -translate-y-1/2"><Loader2 className="w-4 h-4 animate-spin text-sunset" /></div>}
+                      
+                      <AnimatePresence>
+                        {cityResults.length > 0 && citySearch.length >= 3 && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute left-0 right-0 top-full mt-2 bg-white border border-charcoal/10 shadow-2xl z-[60] max-h-60 overflow-y-auto"
+                          >
+                            {cityResults.map((city, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => {
+                                  updateGiftData({ locationName: city.name, lat: city.lat, lng: city.lng });
+                                  setCityResults([]);
+                                  setCitySearch("");
+                                }}
+                                className="w-full p-4 text-left text-xs hover:bg-sunset/5 border-b border-charcoal/5 transition-colors lowercase"
+                              >
+                                {city.name}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    {giftData.locationName && <p className="text-[9px] uppercase tracking-widest text-sunset font-black mt-2">✓ Selecionado: {giftData.locationName}</p>}
+                  </div>
+                </div>
+                
+                {/* Mobile Preview for StarMap */}
+                <div className="lg:hidden flex flex-col items-center py-12 bg-charcoal/5 rounded-[32px] border border-charcoal/10">
+                   <StarMap date={giftData.eventDate} lat={giftData.lat} lng={giftData.lng} size={280} />
+                   <p className="mt-6 text-[10px] uppercase tracking-[0.3em] opacity-40 font-black">Este será o céu do seu presente</p>
+                </div>
+              </StepContainer>
+            )}
+
+            {currentStep === 3 && (
               <StepContainer key="step2" title="Introdução: Stories" subtitle="selecione as fotos de abertura e adicione comentários estilo instagram.">
                  <div className="bg-white border-[1px] border-charcoal/20 p-4 md:p-8 space-y-6 shadow-xl relative mt-8">
                     <div className="grid gap-6">
@@ -202,7 +306,7 @@ export default function CreateGift() {
             )}
 
 
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <StepContainer key="step3" title="A Linha do Tempo" subtitle="agora, conte a história. fotos e mensagens que formam a jornada.">
                 <div className="bg-white border-[1px] border-charcoal/20 p-8 space-y-6 shadow-xl relative mt-8">
                   <div className="grid md:grid-cols-1 gap-6">
@@ -247,7 +351,7 @@ export default function CreateGift() {
               </StepContainer>
             )}
 
-            {currentStep === 4 && (
+            {currentStep === 5 && (
               <StepContainer key="step4" title="Sua Trilha Sonora" subtitle="procure por qualquer música do catálogo oficial para ser o fundo do seu presente.">
                 <div className="space-y-6">
                   {/* Search Bar */}
@@ -331,7 +435,7 @@ export default function CreateGift() {
           <div className="flex pt-12 items-center gap-12 sticky bottom-0 bg-cream/80 backdrop-blur-xl py-6 border-t-[1px] border-charcoal/5 z-40">
             <button onClick={() => setCurrentStep(p => Math.max(1, p-1))} disabled={currentStep === 1} className="text-[10px] uppercase tracking-widest font-bold disabled:opacity-10 hover:text-sunset transition-colors">voltar</button>
             <div className="flex-1" />
-            {currentStep < 4 && (
+            {currentStep < 5 && (
               <button onClick={() => setCurrentStep(p => p + 1)} className="group flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] font-black text-sunset hover:gap-6 transition-all">
                 próximo passo <ArrowRight className="w-4 h-4" />
               </button>
@@ -343,53 +447,83 @@ export default function CreateGift() {
         <div className="lg:col-span-5 relative hidden lg:block pt-12">
           <div className="sticky top-24">
              <div className="relative bg-charcoal aspect-[9/16] w-full max-w-[320px] mx-auto shadow-2xl rounded-[12px] border-[1px] border-cream/10 overflow-hidden">
-                {currentStep <= 2 ? (
-                  <div className="h-full flex flex-col p-4 text-cream">
-                     <div className="flex gap-1 mb-4">
-                        {(giftData.stories.length > 0 ? giftData.stories : [1,2,3]).map((_, i) => (
-                           <div key={i} className="flex-1 h-[1.5px] bg-cream/20 overflow-hidden">
-                              <motion.div animate={{ width: i === 0 ? "100%" : "0%" }} transition={{ duration: 4, repeat: Infinity }} className="h-full bg-cream" />
-                           </div>
-                        ))}
-                     </div>
-                     <div className="flex items-center gap-2 mb-4">
-                        <div className="w-6 h-6 rounded-full bg-sunset flex items-center justify-center text-[8px] font-bold">{giftData.recipientName[0] || "?"}</div>
-                        <span className="text-[10px] font-medium opacity-80">{giftData.recipientName || "destinatário"}</span>
-                     </div>
-                     <div className="flex-1 relative bg-charcoal-light rounded-[4px] overflow-hidden">
-                        {giftData.stories.length > 0 ? (
-                           <div className="h-full">
-                             <img src={giftData.stories[giftData.stories.length - 1].imageUrl} className="w-full h-full object-cover" />
-                             {giftData.stories[giftData.stories.length - 1].message && (
-                               <div className="absolute bottom-4 left-4 max-w-[85%] bg-white/20 backdrop-blur-md p-3 rounded-lg border border-white/10">
-                                  <p className="text-[10px] leading-tight font-medium text-white italic">"{giftData.stories[giftData.stories.length - 1].message}"</p>
-                               </div>
-                             )}
-                           </div>
-                        ) : (
-                           <div className="h-full flex flex-col items-center justify-center opacity-10"><Camera className="w-8 h-8 opacity-20" /></div>
-                        )}
-                     </div>
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col p-4 text-cream overflow-hidden">
-                     <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-sunset/20 -translate-x-1/2" />
-                     <div className="z-10 bg-charcoal/80 backdrop-blur-md p-4 border-[1px] border-cream/10 mb-8 mt-12 text-center">
-                        <span className="text-[8px] uppercase tracking-widest opacity-20 block mb-2">capa: intro</span>
-                        <p className="text-[10px] italic font-serif leading-tight">
-                          {giftData.introMessage || "uma pequena jornada dedicada a você."}
-                        </p>
-                     </div>
-                     <div className="flex-1 relative z-10 flex flex-col items-center gap-4">
-                        {giftData.journey.length > 0 && (
-                          <>
-                            <img src={giftData.journey[giftData.journey.length-1].imageUrl} className="w-full aspect-[4/5] object-cover grayscale shadow-2xl border-[4px] border-white/10" />
-                            <p className="text-[8px] opacity-40 italic">"{giftData.journey[giftData.journey.length-1].message}"</p>
-                          </>
-                        )}
-                     </div>
-                  </div>
-                )}
+                 {currentStep === 1 ? (
+                   <div className="h-full flex flex-col p-4 text-cream">
+                      {/* Original names content */}
+                      <div className="flex gap-1 mb-4">
+                         {(giftData.stories.length > 0 ? giftData.stories : [1,2,3]).map((_, i) => (
+                            <div key={i} className="flex-1 h-[1.5px] bg-cream/20 overflow-hidden">
+                               <motion.div animate={{ width: i === 0 ? "100%" : "0%" }} transition={{ duration: 4, repeat: Infinity }} className="h-full bg-cream" />
+                            </div>
+                         ))}
+                      </div>
+                      <div className="flex items-center gap-2 mb-4">
+                         <div className="w-6 h-6 rounded-full bg-sunset flex items-center justify-center text-[8px] font-bold">{giftData.recipientName[0] || "?"}</div>
+                         <span className="text-[10px] font-medium opacity-80">{giftData.recipientName || "destinatário"}</span>
+                      </div>
+                      <div className="flex-1 relative bg-charcoal-light rounded-[4px] overflow-hidden flex flex-col items-center justify-center text-center p-6 bg-charcoal-light">
+                          <span className="text-[8px] uppercase tracking-widest opacity-20 block mb-2">capa: intro</span>
+                          <p className="text-[10px] italic font-serif leading-tight">
+                            {giftData.introMessage || "uma pequena jornada dedicada a você."}
+                          </p>
+                      </div>
+                   </div>
+                 ) : currentStep === 2 ? (
+                   <div className="h-full flex flex-col items-center justify-center p-8 bg-charcoal text-cream text-center space-y-8 animate-in fade-in duration-1000">
+                      <StarMap date={giftData.eventDate} lat={giftData.lat} lng={giftData.lng} size={240} />
+                      <div className="space-y-2">
+                        <span className="text-[7px] uppercase tracking-[0.4em] text-sunset font-black">Nosso Céu em</span>
+                        <h4 className="text-xl font-serif italic lowercase truncate max-w-full px-4">{giftData.locationName || "Localização"}</h4>
+                        <p className="text-[8px] uppercase tracking-widest opacity-40">{new Date(giftData.eventDate).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                   </div>
+                 ) : currentStep === 3 ? (
+                   <div className="h-full flex flex-col p-4 text-cream">
+                      <div className="flex gap-1 mb-4">
+                         {(giftData.stories.length > 0 ? giftData.stories : [1,2,3]).map((_, i) => (
+                            <div key={i} className="flex-1 h-[1.5px] bg-cream/20 overflow-hidden">
+                               <motion.div animate={{ width: i === 0 ? "100%" : "0%" }} transition={{ duration: 4, repeat: Infinity }} className="h-full bg-cream" />
+                            </div>
+                         ))}
+                      </div>
+                      <div className="flex items-center gap-2 mb-4">
+                         <div className="w-6 h-6 rounded-full bg-sunset flex items-center justify-center text-[8px] font-bold">{giftData.recipientName[0] || "?"}</div>
+                         <span className="text-[10px] font-medium opacity-80">{giftData.recipientName || "destinatário"}</span>
+                      </div>
+                      <div className="flex-1 relative bg-charcoal-light rounded-[4px] overflow-hidden">
+                         {giftData.stories.length > 0 ? (
+                            <div className="h-full">
+                              <img src={giftData.stories[giftData.stories.length - 1].imageUrl} className="w-full h-full object-cover" />
+                                <div className="absolute bottom-4 left-4 max-w-[85%] bg-white/20 backdrop-blur-md p-3 rounded-lg border border-white/10">
+                                   <p className="text-[10px] leading-tight font-medium text-white italic">"{giftData.stories[giftData.stories.length - 1].message}"</p>
+                                </div>
+                            </div>
+                         ) : (
+                            <div className="h-full flex flex-col items-center justify-center opacity-10"><Camera className="w-8 h-8 opacity-20" /></div>
+                         )}
+                      </div>
+                   </div>
+                 ) : (
+                   <div className="h-full flex flex-col p-4 text-cream overflow-hidden">
+                      <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-sunset/20 -translate-x-1/2" />
+                      <div className="z-10 bg-charcoal/80 backdrop-blur-md p-4 border-[1px] border-cream/10 mb-8 mt-12 text-center">
+                         <span className="text-[8px] uppercase tracking-widest opacity-20 block mb-2">jornada eterna</span>
+                         <p className="text-[10px] italic font-serif leading-tight opacity-60">
+                           {giftData.introMessage.substring(0, 40)}...
+                         </p>
+                      </div>
+                      <div className="flex-1 relative z-10 flex flex-col items-center gap-4">
+                         {giftData.journey.length > 0 ? (
+                           <>
+                             <img src={giftData.journey[giftData.journey.length-1].imageUrl} className="w-full aspect-[4/5] object-cover grayscale shadow-2xl border-[4px] border-white/10" />
+                             <p className="text-[8px] opacity-40 italic">"{giftData.journey[giftData.journey.length-1].message}"</p>
+                           </>
+                         ) : (
+                           <div className="h-full flex flex-col items-center justify-center opacity-10"><Map className="w-8 h-8 opacity-20" /></div>
+                         )}
+                      </div>
+                   </div>
+                 )}
              </div>
           </div>
         </div>

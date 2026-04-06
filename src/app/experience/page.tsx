@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { markGiftAsPaid } from "@/lib/gift-service";
 import ShareModal from "@/components/ShareModal";
+import StarMap from "@/components/StarMap";
 
 function ExperienceContent() {
   const router = useRouter();
@@ -64,7 +65,11 @@ function ExperienceContent() {
             musicName: data.music_name,
             isPaid: data.is_paid,
             stories: data.stories,
-            journey: data.journey
+            journey: data.journey,
+            eventDate: data.event_date,
+            locationName: data.location_name,
+            lat: data.lat,
+            lng: data.lng
           });
         } else {
           console.warn("Nenhum dado encontrado para esse ID.");
@@ -109,7 +114,11 @@ function ExperienceContent() {
               musicName: data.music_name,
               isPaid: true,
               stories: data.stories,
-              journey: data.journey
+              journey: data.journey,
+              eventDate: data.event_date,
+              locationName: data.location_name,
+              lat: data.lat,
+              lng: data.lng
             });
           }
           setPayStatus("done");
@@ -298,6 +307,9 @@ function ExperienceContent() {
               isPlaying={isPlaying}
             />
           )}
+          
+          {/* 5.5 Star Map Section */}
+          <StarMapSection giftData={giftData} scrollContainer={containerRef} isPlaying={isPlaying} />
 
           <div className={cn("relative transition-opacity duration-1000", isPlaying ? "opacity-100" : "opacity-0 pointer-events-none")}>
             <motion.div style={{ scaleY: scrollYProgress }} className="fixed left-1/2 top-0 bottom-0 w-[1px] bg-sunset/30 origin-top -translate-x-1/2 hidden md:block" />
@@ -621,35 +633,18 @@ function InstagramStories({ memories, onComplete, isPlaying }: { memories: any[]
             </motion.div>
         </AnimatePresence>
 
-        {/* Shared Comment Sticker Overlay - Extreme Glass Style */}
-        <div className="absolute inset-x-0 bottom-32 z-50 px-6 pointer-events-none">
+        {/* Story Caption Overlay - Matched with Preview Style */}
+        <div className="absolute inset-x-0 bottom-24 z-50 px-6 pointer-events-none">
             <motion.div 
                 key={`sticker-${currentIndex}`}
-                initial={{ opacity: 0, y: 30, scale: 0.9, rotate: -2 }}
-                animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                transition={{ type: "spring", damping: 15, stiffness: 80 }}
-                className="bg-white/10 backdrop-blur-3xl border-[1px] border-white/30 p-5 rounded-[28px] flex gap-4 items-start shadow-2xl relative overflow-hidden group"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", damping: 20 }}
+                className="max-w-[85%] bg-white/20 backdrop-blur-md border-[1px] border-white/10 p-5 rounded-2xl shadow-2xl"
             >
-                {/* Reflexo Sutil de Vidro */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-                
-                <div className="w-11 h-11 rounded-full bg-sunset p-[1.5px] flex-shrink-0 shadow-lg relative z-10">
-                    <div className="w-full h-full rounded-full bg-charcoal flex items-center justify-center">
-                        <Heart className="w-5 h-5 text-sunset fill-current" />
-                    </div>
-                </div>
-                <div className="flex-1 space-y-1 mt-0.5 relative z-10">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-extrabold text-white leading-none tracking-tight">{giftData.senderName || "eu"}</span>
-                            <span className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">agora</span>
-                        </div>
-                        <Heart className="w-3.5 h-3.5 text-sunset fill-current shadow-[0_0_8px_rgba(255,89,89,0.4)]" />
-                    </div>
-                    <p className="text-[15px] font-medium text-white/95 leading-snug tracking-tight pr-2">
-                        {memories[currentIndex].message}
-                    </p>
-                </div>
+                <p className="text-[17px] md:text-[19px] font-medium text-white leading-relaxed italic tracking-tight">
+                    "{memories[currentIndex].message}"
+                </p>
             </motion.div>
         </div>
 
@@ -673,6 +668,45 @@ function InstagramStories({ memories, onComplete, isPlaying }: { memories: any[]
       {/* Navigation Zones */}
       <div className="absolute inset-y-0 left-0 w-1/4 z-30" />
       <div className="absolute inset-y-0 right-0 w-1/4 z-30" />
+    </section>
+  );
+}
+
+function StarMapSection({ giftData, scrollContainer, isPlaying }: { giftData: any, scrollContainer: React.RefObject<any>, isPlaying: boolean }) {
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    container: scrollContainer,
+    offset: ["start end", "end start"]
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.4, 0.8, 1], [0, 1, 1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 0.8], [0.8, 1, 0.95]);
+
+  return (
+    <section ref={sectionRef} className="min-h-screen py-32 px-6 flex flex-col items-center justify-center bg-charcoal relative z-50 overflow-hidden">
+      <motion.div style={{ opacity, scale }} className="text-center space-y-12">
+        <div className="space-y-4">
+          <span className="text-[10px] uppercase tracking-[0.5em] text-sunset font-black">Nosso Céu Especial</span>
+          <h2 className="text-4xl md:text-7xl font-serif lowercase italic text-white tracking-tighter">O Universo Conspirou.</h2>
+        </div>
+
+        <div className="relative">
+          <StarMap 
+            date={giftData.eventDate || new Date()} 
+            lat={giftData.lat || -23.5505} 
+            lng={giftData.lng || -46.6333} 
+            size={window.innerWidth < 768 ? 300 : 450} 
+          />
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xl md:text-2xl font-serif italic lowercase opacity-60">"{giftData.locationName || "Em algum lugar especial"}."</p>
+          <p className="text-[10px] uppercase tracking-[0.4em] opacity-30 font-black">
+            {new Date(giftData.eventDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+      </motion.div>
     </section>
   );
 }

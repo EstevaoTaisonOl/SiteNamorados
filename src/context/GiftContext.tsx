@@ -18,6 +18,10 @@ interface GiftData {
   stories: Memory[];
   journey: Memory[];
   files: Record<string, File>; // Store original files for upload after payment
+  eventDate: string; // ISO date
+  locationName: string;
+  lat: number;
+  lng: number;
   isPaid: boolean;
 }
 
@@ -41,6 +45,10 @@ const DEFAULT_GIFT: GiftData = {
   stories: [],
   journey: [],
   files: {},
+  eventDate: new Date().toISOString(),
+  locationName: "",
+  lat: -23.5505, // Default SP (São Paulo)
+  lng: -46.6333,
   isPaid: false,
 };
 
@@ -51,12 +59,12 @@ export function GiftProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("eternal-gift-draft-v3");
+    const saved = localStorage.getItem("eternal-gift-draft-v4");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         // Clear files on reload since they don't persist in localStorage
-        setGiftData({ ...parsed, files: {} });
+        setGiftData({ ...parsed, ...DEFAULT_GIFT, ...parsed, files: {} });
       } catch (e) {
         console.error("Failed to parse saved gift", e);
       }
@@ -68,7 +76,7 @@ export function GiftProvider({ children }: { children: React.ReactNode }) {
     if (isLoaded) {
       // Don't save files object to localStorage (it would be empty/useless anyway)
       const { files, ...serializableData } = giftData;
-      localStorage.setItem("eternal-gift-draft-v3", JSON.stringify(serializableData));
+      localStorage.setItem("eternal-gift-draft-v4", JSON.stringify(serializableData));
     }
   }, [giftData, isLoaded]);
 
@@ -120,7 +128,7 @@ export function GiftProvider({ children }: { children: React.ReactNode }) {
 
   const resetGift = () => {
     setGiftData(DEFAULT_GIFT);
-    localStorage.removeItem("eternal-gift-draft-v3");
+    localStorage.removeItem("eternal-gift-draft-v4");
   };
 
   return (

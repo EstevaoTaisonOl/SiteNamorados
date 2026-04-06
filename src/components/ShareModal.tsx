@@ -114,7 +114,7 @@ export default function ShareModal({ isOpen, onClose, giftData }: ShareModalProp
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
-            className="bg-cream max-w-2xl w-full rounded-[40px] overflow-hidden shadow-2xl relative"
+            className="bg-cream text-charcoal max-w-2xl w-full rounded-[40px] overflow-hidden shadow-2xl relative"
           >
             {/* Header / Close */}
             <div className="absolute top-8 right-8 z-50">
