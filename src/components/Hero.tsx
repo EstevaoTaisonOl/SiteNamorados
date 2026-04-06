@@ -76,13 +76,23 @@ export default function Hero() {
         animate="visible"
         className="max-w-5xl w-full text-center z-10"
       >
-        <motion.div variants={itemVariants} className="flex items-center justify-center gap-2 mb-8">
-          <div className="h-[1px] w-8 bg-charcoal/20" />
-          <span className="text-xs uppercase tracking-[0.2em] font-medium text-charcoal/60 flex items-center gap-2">
-            <Sparkles className="w-3 h-3 text-sunset animate-pulse" />
-            onde memórias se tornam presentes
-          </span>
-          <div className="h-[1px] w-8 bg-charcoal/20" />
+        <motion.div variants={itemVariants} className="flex flex-col items-center gap-6 mb-12">
+          <Link 
+            href="/minhas-memorias" 
+            className="group flex items-center gap-2 text-[8px] uppercase tracking-[0.4em] font-black text-charcoal/30 hover:text-sunset transition-all"
+          >
+            <div className="w-1 h-1 rounded-full bg-sunset animate-pulse" />
+            acessar meus sites criados
+          </Link>
+
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-[1px] w-8 bg-charcoal/20" />
+            <span className="text-xs uppercase tracking-[0.2em] font-medium text-charcoal/60 flex items-center gap-2">
+              <Sparkles className="w-3 h-3 text-sunset animate-pulse" />
+              onde memórias se tornam presentes
+            </span>
+            <div className="h-[1px] w-8 bg-charcoal/20" />
+          </div>
         </motion.div>
 
         <motion.h1 

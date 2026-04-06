@@ -31,7 +31,9 @@ export default function RootLayout({
     >
       <body className="font-sans min-h-full flex flex-col lowercase selection:bg-sunset selection:text-white">
         <div className="noise-overlay" />
-        <GiftProvider>{children}</GiftProvider>
+        <GiftProvider>
+          {children}
+        </GiftProvider>
       </body>
     </html>
   );

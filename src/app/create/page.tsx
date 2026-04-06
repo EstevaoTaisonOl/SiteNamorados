@@ -3,17 +3,21 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGift } from "@/context/GiftContext";
-import { ArrowRight, Heart, Sparkles, Plus, Trash2, Camera, Map, CheckCircle2, Search, Play } from "lucide-react";
+import { ArrowRight, Heart, Sparkles, Plus, Trash2, Camera, Map, CheckCircle2, Search, Play, Upload, CreditCard, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useRef } from "react";
 
 export default function CreateGift() {
   const { giftData, updateGiftData, addStory, removeStory, addJourneyItem, removeJourneyItem } = useGift();
   const [currentStep, setCurrentStep] = useState(1);
-  const [input, setInput] = useState({ photo: "", message: "" });
+  const [input, setInput] = useState({ photo: "", message: "", file: null as File | null });
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [payStatus, setPayStatus] = useState<"idle"|"paying"|"uploading"|"done">("idle");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -52,15 +56,37 @@ export default function CreateGift() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setInput(prev => ({ ...prev, photo: url, file }));
+    }
+  };
+
   const handleAddItem = () => {
     if (input.photo && (currentStep === 2 || input.message)) {
       if (currentStep === 2) {
-        addStory({ imageUrl: input.photo, message: input.message });
+        addStory({ imageUrl: input.photo, message: input.message }, input.file || undefined);
       } else {
-        addJourneyItem({ imageUrl: input.photo, message: input.message });
+        addJourneyItem({ imageUrl: input.photo, message: input.message }, input.file || undefined);
       }
-      setInput({ photo: "", message: "" });
+      setInput({ photo: "", message: "", file: null });
     }
+  };
+
+  const simulateCheckout = async () => {
+    setPayStatus("paying");
+    // Simulate Payment Gateway
+    await new Promise(r => setTimeout(r, 2000));
+    
+    setPayStatus("uploading");
+    // Simulate Supabase Upload
+    console.log("Starting upload to Supabase for files:", giftData.files);
+    await new Promise(r => setTimeout(r, 3000));
+    
+    updateGiftData({ isPaid: true });
+    setPayStatus("done");
   };
 
   return (
@@ -108,28 +134,49 @@ export default function CreateGift() {
             {currentStep === 2 && (
               <StepContainer key="step2" title="Introdução: Stories" subtitle="selecione as fotos de abertura e adicione comentários estilo instagram.">
                  <div className="bg-white border-[1px] border-charcoal/20 p-4 md:p-8 space-y-6 shadow-xl relative mt-8">
-                   <div className="grid gap-4">
-                     <div className="space-y-1">
-                       <label className="text-[9px] uppercase tracking-widest text-charcoal/40 italic">Link da Foto</label>
-                       <input 
-                        type="text" 
-                        value={input.photo}
-                        onChange={(e) => setInput({...input, photo: e.target.value})}
-                        placeholder="cole o link da imagem..."
-                        className="w-full bg-cream/30 border-[1px] border-charcoal/10 p-4 md:p-4 text-sm font-light outline-none focus:border-sunset transition-all rounded-none"
-                       />
-                     </div>
-                     <div className="space-y-1">
-                       <label className="text-[9px] uppercase tracking-widest text-charcoal/40 italic">Comentário (IG style)</label>
-                       <input 
-                        type="text" 
-                        value={input.message}
-                        onChange={(e) => setInput({...input, message: e.target.value})}
-                        placeholder="legenda do story..."
-                        className="w-full bg-cream/30 border-[1px] border-charcoal/10 p-4 md:p-4 text-sm font-light outline-none focus:border-sunset transition-all rounded-none"
-                       />
-                     </div>
-                   </div>
+                    <div className="grid gap-6">
+                      <div className="space-y-3">
+                        <label className="text-[9px] uppercase tracking-widest text-charcoal/40 italic">Arquivo da Foto</label>
+                        <input 
+                          type="file"
+                          accept="image/*"
+                          ref={fileInputRef}
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                        <div 
+                          onClick={() => fileInputRef.current?.click()}
+                          className={cn(
+                            "w-full aspect-[4/3] border-[1px] border-dashed border-charcoal/20 flex flex-col items-center justify-center cursor-pointer hover:border-sunset/50 transition-all group overflow-hidden relative",
+                            input.photo ? "border-solid border-charcoal/10" : ""
+                          )}
+                        >
+                          {input.photo ? (
+                            <>
+                              <img src={input.photo} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] uppercase tracking-widest font-bold">
+                                Trocar Foto
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 text-charcoal/20 group-hover:text-sunset group-hover:scale-110 transition-all mb-4" />
+                              <span className="text-[10px] uppercase tracking-[0.2em] text-charcoal/40 font-medium">Clique para selecionar</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] uppercase tracking-widest text-charcoal/40 italic">Comentário (IG style)</label>
+                        <input 
+                         type="text" 
+                         value={input.message}
+                         onChange={(e) => setInput({...input, message: e.target.value})}
+                         placeholder="legenda do story..."
+                         className="w-full bg-cream/30 border-[1px] border-charcoal/10 p-4 md:p-4 text-sm font-light outline-none focus:border-sunset transition-all rounded-none"
+                        />
+                      </div>
+                    </div>
                    <button 
                     onClick={handleAddItem}
                     disabled={!input.photo}
@@ -158,17 +205,33 @@ export default function CreateGift() {
             {currentStep === 3 && (
               <StepContainer key="step3" title="A Linha do Tempo" subtitle="agora, conte a história. fotos e mensagens que formam a jornada.">
                 <div className="bg-white border-[1px] border-charcoal/20 p-8 space-y-6 shadow-xl relative mt-8">
-                  <div className="grid md:grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                       <label className="text-[10px] uppercase tracking-widest text-charcoal/40 italic">Foto</label>
-                       <input type="text" value={input.photo} onChange={(e) => setInput({...input, photo: e.target.value})} placeholder="URL..." className="w-full bg-cream/30 border-[1px] border-charcoal/10 p-4 text-sm outline-none focus:border-sunset" />
+                  <div className="grid md:grid-cols-1 gap-6">
+                     <div className="space-y-4">
+                       <label className="text-[10px] uppercase tracking-widest text-charcoal/40 italic">Foto do Momento</label>
+                       <input 
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const url = URL.createObjectURL(file);
+                              setInput(prev => ({ ...prev, photo: url, file }));
+                            }
+                          }}
+                          className="w-full bg-cream/30 border-[1px] border-charcoal/10 p-4 text-xs font-light outline-none focus:border-sunset transition-all"
+                       />
+                       {input.photo && (
+                         <div className="w-24 h-24 border-[1px] border-charcoal/10 rounded-lg overflow-hidden grayscale">
+                           <img src={input.photo} className="w-full h-full object-cover" />
+                         </div>
+                       )}
                      </div>
                      <div className="space-y-2">
-                       <label className="text-[10px] uppercase tracking-widest text-charcoal/40 italic">Mensagem</label>
-                       <input type="text" value={input.message} onChange={(e) => setInput({...input, message: e.target.value})} placeholder="uma legenda..." className="w-full bg-cream/30 border-[1px] border-charcoal/10 p-4 text-sm outline-none focus:border-sunset" />
+                       <label className="text-[10px] uppercase tracking-widest text-charcoal/40 italic">Nossa Memória</label>
+                       <input type="text" value={input.message} onChange={(e) => setInput({...input, message: e.target.value})} placeholder="uma legenda especial..." className="w-full bg-cream/30 border-[1px] border-charcoal/10 p-4 text-sm outline-none focus:border-sunset font-serif" />
                      </div>
                   </div>
-                  <button onClick={handleAddItem} disabled={!input.photo || !input.message} className="w-full py-4 bg-charcoal text-cream hover:bg-sunset disabled:opacity-20 transition-all font-bold uppercase text-[10px] tracking-widest">
+                  <button onClick={handleAddItem} disabled={!input.photo || !input.message} className="w-full py-4 bg-charcoal text-cream hover:bg-sunset disabled:opacity-20 transition-all font-bold uppercase text-[10px] tracking-widest shadow-xl">
                     Adicionar à Linha do Tempo
                   </button>
                 </div>
@@ -252,8 +315,11 @@ export default function CreateGift() {
                 </div>
 
                 <div className="pt-8">
-                  <Link href="/experience" className="block w-full py-10 bg-charcoal text-cream text-center text-[10px] uppercase tracking-[0.5em] font-black hover:bg-sunset hover:shadow-[0_20px_40px_rgba(255,107,74,0.3)] transition-all active:scale-[0.98]">
-                    Finalizar e Receber Presente
+                  <Link 
+                    href="/experience" 
+                    className="block w-full py-10 bg-charcoal text-cream text-center text-[10px] uppercase tracking-[0.5em] font-black hover:bg-sunset hover:shadow-[0_20px_40px_rgba(255,107,74,0.3)] transition-all active:scale-[0.98]"
+                  >
+                    Ver Preview do Presente
                   </Link>
                 </div>
               </StepContainer>

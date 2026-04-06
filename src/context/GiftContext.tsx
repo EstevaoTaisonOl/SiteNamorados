@@ -17,15 +17,16 @@ interface GiftData {
   musicPreviewUrl: string;
   stories: Memory[];
   journey: Memory[];
+  files: Record<string, File>; // Store original files for upload after payment
   isPaid: boolean;
 }
 
 interface GiftContextType {
   giftData: GiftData;
   updateGiftData: (data: Partial<GiftData>) => void;
-  addStory: (story: Omit<Memory, "id">) => void;
+  addStory: (story: Omit<Memory, "id">, file?: File) => void;
   removeStory: (id: string) => void;
-  addJourneyItem: (item: Omit<Memory, "id">) => void;
+  addJourneyItem: (item: Omit<Memory, "id">, file?: File) => void;
   removeJourneyItem: (id: string) => void;
   resetGift: () => void;
 }
@@ -39,6 +40,7 @@ const DEFAULT_GIFT: GiftData = {
   musicPreviewUrl: "",
   stories: [],
   journey: [],
+  files: {},
   isPaid: false,
 };
 
@@ -52,7 +54,9 @@ export function GiftProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem("eternal-gift-draft-v3");
     if (saved) {
       try {
-        setGiftData(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        // Clear files on reload since they don't persist in localStorage
+        setGiftData({ ...parsed, files: {} });
       } catch (e) {
         console.error("Failed to parse saved gift", e);
       }
@@ -62,7 +66,9 @@ export function GiftProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem("eternal-gift-draft-v3", JSON.stringify(giftData));
+      // Don't save files object to localStorage (it would be empty/useless anyway)
+      const { files, ...serializableData } = giftData;
+      localStorage.setItem("eternal-gift-draft-v3", JSON.stringify(serializableData));
     }
   }, [giftData, isLoaded]);
 
@@ -70,34 +76,46 @@ export function GiftProvider({ children }: { children: React.ReactNode }) {
     setGiftData((prev) => ({ ...prev, ...data }));
   };
 
-  const addStory = (story: Omit<Memory, "id">) => {
-    const newStory = { ...story, id: `story-${Math.random().toString(36).substr(2, 9)}` };
+  const addStory = (story: Omit<Memory, "id">, file?: File) => {
+    const id = `story-${Math.random().toString(36).substr(2, 9)}`;
+    const newStory = { ...story, id };
     setGiftData((prev) => ({
       ...prev,
       stories: [...prev.stories, newStory],
+      files: file ? { ...prev.files, [id]: file } : prev.files,
     }));
   };
 
   const removeStory = (id: string) => {
-    setGiftData((prev) => ({
-      ...prev,
-      stories: prev.stories.filter((s) => s.id !== id),
-    }));
+    setGiftData((prev) => {
+      const { [id]: _, ...remainingFiles } = prev.files;
+      return {
+        ...prev,
+        stories: prev.stories.filter((s) => s.id !== id),
+        files: remainingFiles,
+      };
+    });
   };
 
-  const addJourneyItem = (item: Omit<Memory, "id">) => {
-    const newItem = { ...item, id: `journey-${Math.random().toString(36).substr(2, 9)}` };
+  const addJourneyItem = (item: Omit<Memory, "id">, file?: File) => {
+    const id = `journey-${Math.random().toString(36).substr(2, 9)}`;
+    const newItem = { ...item, id };
     setGiftData((prev) => ({
       ...prev,
       journey: [...prev.journey, newItem],
+      files: file ? { ...prev.files, [id]: file } : prev.files,
     }));
   };
 
   const removeJourneyItem = (id: string) => {
-    setGiftData((prev) => ({
-      ...prev,
-      journey: prev.journey.filter((j) => j.id !== id),
-    }));
+    setGiftData((prev) => {
+      const { [id]: _, ...remainingFiles } = prev.files;
+      return {
+        ...prev,
+        journey: prev.journey.filter((j) => j.id !== id),
+        files: remainingFiles,
+      };
+    });
   };
 
   const resetGift = () => {
