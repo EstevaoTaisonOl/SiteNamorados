@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { markGiftAsPaid } from "@/lib/gift-service";
 import ShareModal from "@/components/ShareModal";
 import StarMap from "@/components/StarMap";
+import EternalCounter from "@/components/EternalCounter";
 
 function ExperienceContent() {
   const router = useRouter();
@@ -310,6 +311,9 @@ function ExperienceContent() {
           
           {/* 5.5 Star Map Section */}
           <StarMapSection giftData={giftData} scrollContainer={containerRef} isPlaying={isPlaying} />
+          
+          {/* 5.6 Eternal Counter Section */}
+          <EternalCounterSection giftData={giftData} scrollContainer={containerRef} isPlaying={isPlaying} />
 
           <div className={cn("relative transition-opacity duration-1000", isPlaying ? "opacity-100" : "opacity-0 pointer-events-none")}>
             <motion.div style={{ scaleY: scrollYProgress }} className="fixed left-1/2 top-0 bottom-0 w-[1px] bg-sunset/30 origin-top -translate-x-1/2 hidden md:block" />
@@ -705,6 +709,34 @@ function StarMapSection({ giftData, scrollContainer, isPlaying }: { giftData: an
           <p className="text-[10px] uppercase tracking-[0.4em] opacity-30 font-black">
             {new Date(giftData.eventDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+function EternalCounterSection({ giftData, scrollContainer, isPlaying }: { giftData: any, scrollContainer: React.RefObject<any>, isPlaying: boolean }) {
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    container: scrollContainer,
+    offset: ["start end", "end start"]
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+
+  return (
+    <section ref={sectionRef} className="min-h-screen py-32 px-6 flex flex-col items-center justify-center bg-charcoal relative z-50">
+      <motion.div style={{ opacity }} className="w-full">
+        <div className="text-center mb-16 space-y-4">
+           <span className="text-[10px] uppercase tracking-[0.5em] text-sunset font-black italic">Desde aquele momento</span>
+           <h2 className="text-4xl md:text-6xl font-serif text-white lowercase italic tracking-tighter">Cada segundo ao seu lado.</h2>
+        </div>
+
+        <EternalCounter startDate={giftData.eventDate || new Date()} />
+        
+        <div className="mt-20 flex justify-center">
+            <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         </div>
       </motion.div>
     </section>
