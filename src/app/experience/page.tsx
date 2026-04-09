@@ -23,6 +23,7 @@ function ExperienceContent() {
   const [isMuted, setIsMuted] = useState(false);
   const [payStatus, setPayStatus] = useState<"idle"|"uploading"|"done">("idle");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [copied, setCopied] = useState(false);
   const searchParams = useSearchParams();
   
   const { scrollYProgress } = useScroll({
