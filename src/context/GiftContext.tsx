@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 interface Memory {
   id: string;
@@ -57,6 +58,9 @@ const GiftContext = createContext<GiftContextType | undefined>(undefined);
 export function GiftProvider({ children }: { children: React.ReactNode }) {
   const [giftData, setGiftData] = useState<GiftData>(DEFAULT_GIFT);
   const [isLoaded, setIsLoaded] = useState(false);
+  const pathname = usePathname();
+
+  const isExperiencePage = pathname?.startsWith("/experience");
 
   useEffect(() => {
     const saved = localStorage.getItem("eternal-gift-draft-v4");
@@ -73,12 +77,12 @@ export function GiftProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && !isExperiencePage) {
       // Don't save files object to localStorage (it would be empty/useless anyway)
       const { files, ...serializableData } = giftData;
       localStorage.setItem("eternal-gift-draft-v4", JSON.stringify(serializableData));
     }
-  }, [giftData, isLoaded]);
+  }, [giftData, isLoaded, isExperiencePage]);
 
   const updateGiftData = (data: Partial<GiftData>) => {
     setGiftData((prev) => ({ ...prev, ...data }));

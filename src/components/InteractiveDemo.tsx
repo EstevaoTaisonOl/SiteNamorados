@@ -54,13 +54,16 @@ export default function InteractiveDemo() {
         </motion.div>
 
 
-        {/* The "Player" Preview */}
-        <motion.div 
-          initial={{ y: 60, opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1.2 }}
-          className="md:col-span-8 relative aspect-[4/5] bg-charcoal group overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]"
+        <Link
+          href="/experience?giftId=ebf43ef0-b977-4f95-b048-4887fa8472a6&"
+          className="md:col-span-8 relative aspect-[4/5] bg-charcoal group overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)] block"
         >
+          <motion.div 
+            initial={{ y: 60, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            transition={{ duration: 1.2 }}
+            className="w-full h-full"
+          >
           {/* Background Image (Mock) */}
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518199266791-739d6ff24ed7?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale group-hover:scale-110 transition-transform duration-[3s] ease-linear" />
           
@@ -103,6 +106,7 @@ export default function InteractiveDemo() {
             </div>
           </div>
         </motion.div>
+        </Link>
       </div>
 
       <div className="mt-16 text-center">
@@ -110,10 +114,10 @@ export default function InteractiveDemo() {
           cada presente é uma jornada visual imersiva e interativa. sua história merece um palco digital.
         </p>
         <Link 
-          href="/create"
+          href="/experience?giftId=ebf43ef0-b977-4f95-b048-4887fa8472a6&"
           className="text-sunset text-sm font-medium tracking-[0.2em] uppercase flex items-center justify-center gap-2 mx-auto hover:gap-4 transition-all"
         >
-          Começar minha edição <Play className="w-3 h-3 fill-sunset" />
+          Ver exemplo completo <Play className="w-3 h-3 fill-sunset" />
         </Link>
       </div>
     </section>

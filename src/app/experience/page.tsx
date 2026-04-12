@@ -17,7 +17,7 @@ import AestheticStats from "@/components/AestheticStats";
 
 function ExperienceContent() {
   const router = useRouter();
-  const { giftData, updateGiftData } = useGift();
+  const { giftData, updateGiftData, resetGift } = useGift();
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -127,6 +127,7 @@ function ExperienceContent() {
           }
           setPayStatus("done");
           setShowSuccessModal(true);
+          resetGift(); // Clear draft after successful payment
         } catch (e) {
           console.error("Erro ao atualizar pagamento:", e);
         }

@@ -154,7 +154,7 @@ export default function Hero() {
           </div>
           
           <Link 
-            href="#demo"
+            href="/experience?giftId=ebf43ef0-b977-4f95-b048-4887fa8472a6&"
             className="px-10 py-5 border-[1px] border-charcoal/10 hover:border-charcoal/30 transition-colors text-lg font-medium text-charcoal/80"
           >
             Ver um exemplo
@@ -169,7 +169,7 @@ export default function Hero() {
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="hidden lg:block absolute top-[25%] left-[10%] w-32 h-44 border-[0.5px] border-charcoal/10 bg-white/40 backdrop-blur-sm -rotate-6 shadow-xl overflow-hidden p-2"
       >
-        <img src="https://images.unsplash.com/photo-1518199266791-739d6ff24ed7?q=80&w=200" alt="Fragment" className="w-full h-32 object-cover grayscale opacity-50" />
+        <img src="home/padrao1.jpg" alt="Fragment1" className="w-full h-32 object-cover grayscale opacity-50" />
       </motion.div>
 
       <motion.div 
@@ -178,7 +178,7 @@ export default function Hero() {
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         className="hidden lg:block absolute bottom-[20%] right-[12%] w-40 h-52 border-[0.5px] border-charcoal/10 bg-white/40 backdrop-blur-md rotate-12 shadow-2xl overflow-hidden p-3"
       >
-        <img src="https://images.unsplash.com/photo-1543807535-eceef0bc6599?q=80&w=200" alt="Fragment" className="w-full h-36 object-cover grayscale opacity-40" />
+        <img src="https://images.unsplash.com/photo-1543807535-eceef0bc6599?q=80&w=200" alt="Fragment2" className="w-full h-36 object-cover grayscale opacity-40" />
       </motion.div>
     </section>
   );
