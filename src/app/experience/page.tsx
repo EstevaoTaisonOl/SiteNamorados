@@ -12,6 +12,8 @@ import { markGiftAsPaid } from "@/lib/gift-service";
 import ShareModal from "@/components/ShareModal";
 import StarMap from "@/components/StarMap";
 import EternalCounter from "@/components/EternalCounter";
+import SurpriseRoulette from "@/components/SurpriseRoulette";
+import AestheticStats from "@/components/AestheticStats";
 
 function ExperienceContent() {
   const router = useRouter();
@@ -310,11 +312,17 @@ function ExperienceContent() {
             />
           )}
           
-          {/* 5.5 Star Map Section */}
+          {/* 5.5 Wrapped Stats Section */}
+          {isPlaying && <AestheticStats startDate={giftData.eventDate || new Date()} />}
+          
+          {/* 5.6 Star Map Section */}
           <StarMapSection giftData={giftData} scrollContainer={containerRef} isPlaying={isPlaying} />
           
           {/* 5.6 Eternal Counter Section */}
           <EternalCounterSection giftData={giftData} scrollContainer={containerRef} isPlaying={isPlaying} />
+
+          {/* 5.7 Surprise Roulette Section */}
+          {isPlaying && <SurpriseRoulette />}
 
           <div className={cn("relative transition-opacity duration-1000", isPlaying ? "opacity-100" : "opacity-0 pointer-events-none")}>
             <motion.div style={{ scaleY: scrollYProgress }} className="fixed left-1/2 top-0 bottom-0 w-[1px] bg-sunset/30 origin-top -translate-x-1/2 hidden md:block" />
